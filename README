@@ -2,7 +2,7 @@ scram project -n CMSSW_7_6_5_avroTest2 CMSSW CMSSW_7_6_5
 cd CMSSW_7_6_5_avroTest2/src/
 cmsenv
 git clone git@github.com:nhanvtran/CMSBigDataMiniAOD.git Demo/AvroProducer
-cp Demo/AvroProducer/externalAvro/avro.html config/toolbox/$SCRAM_ARCH/tools/selected/.
+cp Demo/AvroProducer/externalAvro/avro.xml config/toolbox/$SCRAM_ARCH/tools/selected/.
 scram setup avro
 scram b -r -j8
 cd Demo/AvroProducer/python
