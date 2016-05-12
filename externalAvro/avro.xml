@@ -1,0 +1,12 @@
+  <tool name="avro" version="1.8.0">
+    <info url="https://avro.apache.org/docs/current/api/c/"/>
+    <lib name="avro"/>
+    <lib name="jansson"/>    
+    <client>
+      <environment name="AVRO_BASE" default="$CMSSW_BASE/src/Demo/AvroProducer/externalAvro"/>
+      <environment name="LIBDIR" default="$AVRO_BASE/lib"/>
+      <environment name="INCLUDE" default="$AVRO_BASE/include"/>
+    </client>
+    <runtime name="ROOT_INCLUDE_PATH" value="$INCLUDE" type="path"/>
+    <use name="root_cxxdefaults"/>
+  </tool>

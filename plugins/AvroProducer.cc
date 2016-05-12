@@ -41,6 +41,8 @@
 #include <DataFormats/PatCandidates/interface/Photon.h>
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include <TVector2.h>  
+
+#include "avro.h"
 //
 // class declaration
 //
@@ -117,6 +119,21 @@ AvroProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    edm::Handle< edm::View<pat::Jet> > Jets;
    iEvent.getByToken(JetTok_,Jets);
    std::cout << "Jets size = " << Jets->size() << std::endl;
+
+
+  /* A simple schema for our tutorial */
+  const char  PERSON_SCHEMA[] =
+  "{\"type\":\"record\",\
+    \"name\":\"Person\",\
+    \"fields\":[\
+       {\"name\": \"ID\", \"type\": \"long\"},\
+       {\"name\": \"First\", \"type\": \"string\"},\
+       {\"name\": \"Last\", \"type\": \"string\"},\
+       {\"name\": \"Phone\", \"type\": \"string\"},\
+       {\"name\": \"Age\", \"type\": \"int\"}]}";
+
+  avro_schema_t person_schema;
+  avro_schema_from_json_literal(PERSON_SCHEMA, &person_schema);
 
 
 // #ifdef THIS_IS_AN_EVENT_EXAMPLE
