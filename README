@@ -1,0 +1,7 @@
+scram project -n CMSSW_7_6_5_avroTest2 CMSSW CMSSW_7_6_5
+cd CMSSW_7_6_5_avroTest2/src/
+cmsenv
+git clone git@github.com:nhanvtran/CMSBigData.git Demo
+scram b -r -j8
+cd Demo/AvroProducer/python
+cmsRun ConfFile_cfg.py
