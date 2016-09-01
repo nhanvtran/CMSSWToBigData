@@ -66,9 +66,17 @@ class AvroProducer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
       virtual void endJob() override;
 
-      edm::InputTag JetTag_;
-      edm::EDGetTokenT<edm::View<pat::Jet>> JetTok_;
+      edm::InputTag JetTagCHSAK4_;
+      edm::EDGetTokenT<edm::View<pat::Jet>> JetTokCHSAK4_;
+      edm::InputTag JetTagPUPAK4_;
+      edm::EDGetTokenT<edm::View<pat::Jet>> JetTokPUPAK4_;
 
+     // initiate schema
+     avro_schema_t event_schema;
+     avro_file_writer_t db;
+
+     avro_value_iface_t *avroEventInterface;
+     avro_value_t avroEvent;
 
       // ----------member data ---------------------------
 };
@@ -90,8 +98,11 @@ AvroProducer::AvroProducer(const edm::ParameterSet& iConfig)
    //now do what ever initialization is needed
    usesResource("TFileService");
    
-   JetTag_ = iConfig.getParameter<edm::InputTag>("JetTag");
-   JetTok_ = consumes<edm::View<pat::Jet>>(JetTag_);
+   JetTagCHSAK4_ = iConfig.getParameter<edm::InputTag>("JetTagCHSAK4");
+   JetTokCHSAK4_ = consumes<edm::View<pat::Jet>>(JetTagCHSAK4_);
+
+   JetTagPUPAK4_ = iConfig.getParameter<edm::InputTag>("JetTagPUPAK4");
+   JetTokPUPAK4_ = consumes<edm::View<pat::Jet>>(JetTagPUPAK4_);
 
 }
 
@@ -115,26 +126,56 @@ AvroProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    using namespace edm;
 
+  // avro_datum_t event = avro_record(event_schema);
 
-   edm::Handle< edm::View<pat::Jet> > Jets;
-   iEvent.getByToken(JetTok_,Jets);
-   std::cout << "Jets size = " << Jets->size() << std::endl;
+  edm::Handle< edm::View<pat::Jet> > patJetsCHSAK4;
+  iEvent.getByToken(JetTokCHSAK4_,patJetsCHSAK4);
+  edm::Handle< edm::View<pat::Jet> > patJetsPUPAK4;
+  iEvent.getByToken(JetTokPUPAK4_,patJetsPUPAK4);
+  
+  avro_value_t JetsCHSAK4;
+  avro_value_t JetsPUPAK4;
+  avro_value_get_by_index(&avroEvent,0,&JetsCHSAK4,0);
+  avro_value_get_by_index(&avroEvent,1,&JetsPUPAK4,0);
 
+  avro_value_reset(&JetsCHSAK4);
+  std::cout << "JetsCHSAK4 size = " << patJetsCHSAK4->size() << std::endl;
+  for (unsigned int i = 0; i < patJetsCHSAK4->size(); ++i){
+    // std::cout << "jet " << i << ": " << std::endl;
+    // std::cout << "  pt,eta,phi,e =" << JetsCHSAK4->at(i).pt() << "," << JetsCHSAK4->at(i).eta() << "," << JetsCHSAK4->at(i).phi() << "," << JetsCHSAK4->at(i).energy() << std::endl;
+    avro_value_t JetCHSAK4;
+    avro_value_append(&JetsCHSAK4,&JetCHSAK4,0);
+    avro_value_t JetCHSAK4_pt;
+    avro_value_t JetCHSAK4_eta;
+    avro_value_t JetCHSAK4_phi;
+    avro_value_get_by_index(&JetCHSAK4,0,&JetCHSAK4_pt,0);
+    avro_value_get_by_index(&JetCHSAK4,1,&JetCHSAK4_eta,0);
+    avro_value_get_by_index(&JetCHSAK4,2,&JetCHSAK4_phi,0);
+    avro_value_set_double(&JetCHSAK4_pt,patJetsCHSAK4->at(i).pt());
+    avro_value_set_double(&JetCHSAK4_eta,patJetsCHSAK4->at(i).eta());
+    avro_value_set_double(&JetCHSAK4_phi,patJetsCHSAK4->at(i).phi());
+  }
 
-  /* A simple schema for our tutorial */
-  const char  PERSON_SCHEMA[] =
-  "{\"type\":\"record\",\
-    \"name\":\"Person\",\
-    \"fields\":[\
-       {\"name\": \"ID\", \"type\": \"long\"},\
-       {\"name\": \"First\", \"type\": \"string\"},\
-       {\"name\": \"Last\", \"type\": \"string\"},\
-       {\"name\": \"Phone\", \"type\": \"string\"},\
-       {\"name\": \"Age\", \"type\": \"int\"}]}";
-
-  avro_schema_t person_schema;
-  avro_schema_from_json_literal(PERSON_SCHEMA, &person_schema);
-
+  avro_value_reset(&JetsPUPAK4);
+  std::cout << "JetsPUPAK4 size = " << patJetsPUPAK4->size() << std::endl;
+  for (unsigned int i = 0; i < patJetsPUPAK4->size(); ++i){
+    // std::cout << "jet " << i << ": " << std::endl;
+    // std::cout << "  pt,eta,phi,e =" << JetsPUPAK4->at(i).pt() << "," << JetsPUPAK4->at(i).eta() << "," << JetsPUPAK4->at(i).phi() << "," << JetsPUPAK4->at(i).energy() << std::endl;
+    avro_value_t JetPUPAK4;
+    avro_value_append(&JetsPUPAK4,&JetPUPAK4,0);
+    avro_value_t JetPUPAK4_pt;
+    avro_value_t JetPUPAK4_eta;
+    avro_value_t JetPUPAK4_phi;
+    avro_value_t JetPUPAK4_m;
+    avro_value_get_by_index(&JetPUPAK4,0,&JetPUPAK4_pt,0);
+    avro_value_get_by_index(&JetPUPAK4,1,&JetPUPAK4_eta,0);
+    avro_value_get_by_index(&JetPUPAK4,2,&JetPUPAK4_phi,0);
+    avro_value_get_by_index(&JetPUPAK4,3,&JetPUPAK4_m,0);
+    avro_value_set_double(&JetPUPAK4_pt,patJetsPUPAK4->at(i).pt());
+    avro_value_set_double(&JetPUPAK4_eta,patJetsPUPAK4->at(i).eta());
+    avro_value_set_double(&JetPUPAK4_phi,patJetsPUPAK4->at(i).phi());
+    avro_value_set_double(&JetPUPAK4_m,patJetsPUPAK4->at(i).mass());
+  }  
 
 // #ifdef THIS_IS_AN_EVENT_EXAMPLE
 //    Handle<ExampleData> pIn;
@@ -146,6 +187,7 @@ AvroProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 //    iSetup.get<SetupRecord>().get(pSetup);
 // #endif
 
+  avro_file_writer_append_value(db,&avroEvent);
 
 }
 
@@ -154,12 +196,60 @@ AvroProducer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 void 
 AvroProducer::beginJob()
 {
+
+    /* A simple schema for our tutorial */
+    const char EVENT_SCHEMA[] =
+     "{\"type\": \"record\",\n \
+     \"name\": \"Event\", \n \
+     \"fields\": [ \n \
+         {\"name\": \"ak4chsjets\", \n \
+          \"type\": {\"type\": \"array\", \"items\": \n \
+                   {\"type\": \"record\", \n \
+                    \"name\": \"AK4CHSJet\", \n \
+                    \"fields\": [ \n \
+                        {\"name\": \"pt\", \"type\": \"double\"}, \n \
+                        {\"name\": \"eta\", \"type\": \"double\"}, \n \
+                        {\"name\": \"phi\", \"type\":\"double\"}]}}}, \n \
+        {\"name\": \"ak4pupjets\", \n \
+          \"type\": {\"type\": \"array\", \"items\": \n \
+                   {\"type\": \"record\", \n \
+                    \"name\": \"AK4PUPJet\", \n \
+                    \"fields\": [ \n \
+                        {\"name\": \"pt\", \"type\": \"double\"}, \n \
+                        {\"name\": \"eta\", \"type\": \"double\"}, \n \
+                        {\"name\": \"phi\", \"type\":\"double\"},  \n \
+                        {\"name\": \"mass\", \"type\":\"double\"}]}}} \n \
+                        ]}";
+
+    printf(EVENT_SCHEMA);
+
+    printf("one\n");
+    printf("%d\n", avro_schema_from_json_literal(EVENT_SCHEMA, &event_schema));
+    fprintf(stderr, " error message: %s\n", avro_strerror());
+    printf("one.5\n");
+    avroEventInterface = avro_generic_class_from_schema(event_schema);
+    printf("two\n");
+    // get the interface for the whole event
+    avro_generic_value_new(avroEventInterface,&avroEvent);
+    printf("three\n");
+    const char *dbname = "jets.avro";
+    int rval;
+
+    /* Create a new database */
+    rval = avro_file_writer_create_with_codec(dbname, event_schema, &db, "null", 0);
+    printf("four\n");
+    if (rval) {
+            fprintf(stderr, "There was an error creating %s\n", dbname);
+            fprintf(stderr, " error message: %s\n", avro_strerror());
+            exit(EXIT_FAILURE);
+    }
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 AvroProducer::endJob() 
 {
+  avro_file_writer_close(db);
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
